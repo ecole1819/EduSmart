@@ -60,8 +60,8 @@ async function signUp(email, password, userData) {
     });
     const data = await response.json();
 
-    // Check for errors including 422 (user already exists)
-    if (data.error || response.status !== 201) {
+    // Check for errors - only if there's an error field or status is not 200/201
+    if (data.error || (response.status !== 200 && response.status !== 201)) {
       console.error('Supabase Auth error:', data);
       if (data.error_code === 'user_already_exists') {
         throw new Error('Cet utilisateur existe déjà');
