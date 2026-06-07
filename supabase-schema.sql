@@ -3,6 +3,17 @@
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- ============ SCHOOLS TABLE ============
+CREATE TABLE IF NOT EXISTS schools (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  director VARCHAR(255),
+  city VARCHAR(100),
+  year VARCHAR(20),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ============ USERS TABLE ============
 CREATE TABLE IF NOT EXISTS users (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -14,17 +25,6 @@ CREATE TABLE IF NOT EXISTS users (
   school_id UUID REFERENCES schools(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- ============ SCHOOLS TABLE ============
-CREATE TABLE IF NOT EXISTS schools (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  director VARCHAR(255),
-  city VARCHAR(100),
-  year VARCHAR(20),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- ============ STUDENTS TABLE ============
