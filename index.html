@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduSmart – Gestion Scolaire Intelligente</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- LOGIN SCREEN - STEP 1: SCHOOL -->
+<div id="loginScreen" class="login-overlay">
+  <div class="login-box" id="schoolLoginBox">
+    <div class="login-logo">
+      <i class="fas fa-graduation-cap"></i>
+      <span>EduSmart</span>
+    </div>
+    <h2>Bienvenue</h2>
+    <p class="login-sub">Connectez-vous avec l'email de votre établissement</p>
+    <div class="login-form">
+      <div class="input-group">
+        <i class="fas fa-school"></i>
+        <input type="email" id="schoolEmail" placeholder="Email de l'école (ex: ecole@edusmart.sn)" value="lycee@edusmart.sn" />
+      </div>
+      <button class="btn-login" onclick="verifySchool()">
+        <i class="fas fa-arrow-right"></i> Continuer
+      </button>
+    </div>
+    <button type="button" class="btn-create-account" onclick="console.log('Button clicked'); if(typeof showCreateSchoolModal === 'function') { showCreateSchoolModal(); } else { console.error('showCreateSchoolModal not found'); alert('Fonction non disponible'); }">
+      <i class="fas fa-plus-circle"></i> Créer un compte pour mon école
+    </button>
+    <p class="login-hint">Démo : utilisez lycee@edusmart.sn</p>
+  </div>
+
+  <!-- LOGIN SCREEN - STEP 2: USER ROLE -->
+  <div class="login-box hidden" id="userLoginBox">
+    <div class="login-logo">
+      <i class="fas fa-graduation-cap"></i>
+      <span>EduSmart</span>
+    </div>
+    <h2 id="schoolNameDisplay">Lycée International EduSmart</h2>
+    <p class="login-sub">Sélectionnez votre rôle et connectez-vous</p>
+    <div class="login-roles">
+      <button class="role-btn active" data-role="admin" onclick="selectRole('admin')">
+        <i class="fas fa-user-tie"></i> Directeur
+      </button>
+      <button class="role-btn" data-role="surveillant" onclick="selectRole('surveillant')">
+        <i class="fas fa-shield-alt"></i> Surveillant
+      </button>
+      <button class="role-btn" data-role="teacher" onclick="selectRole('teacher')">
+        <i class="fas fa-chalkboard-teacher"></i> Professeur
+      </button>
+      <button class="role-btn" data-role="student" onclick="selectRole('student')">
+        <i class="fas fa-user-graduate"></i> Élève
+      </button>
+      <button class="role-btn" data-role="parent" onclick="selectRole('parent')">
+        <i class="fas fa-user-friends"></i> Parent
+      </button>
+    </div>
+    <div class="login-form">
+      <div class="input-group">
+        <i class="fas fa-user"></i>
+        <input type="text" id="loginUser" placeholder="Identifiant" value="admin@edusmart.sn" />
+      </div>
+      <div class="input-group">
+        <i class="fas fa-lock"></i>
+        <input type="password" id="loginPass" placeholder="Mot de passe" value="••••••••" />
+      </div>
+      <button class="btn-login" onclick="doLogin()">
+        <i class="fas fa-sign-in-alt"></i> Se connecter
+      </button>
+    </div>
+    <button class="btn-back" onclick="backToSchoolLogin()">
+      <i class="fas fa-arrow-left"></i> Retour
+    </button>
+    <button type="button" class="btn-create-account" onclick="console.log('User button clicked'); if(typeof showCreateUserModal === 'function') { showCreateUserModal(); } else { console.error('showCreateUserModal not found'); alert('Fonction non disponible'); }">
+      <i class="fas fa-plus-circle"></i> Créer un compte utilisateur
+    </button>
+    <p class="login-hint">Démo : cliquez sur un rôle puis connectez-vous</p>
+  </div>
+</div>
+
+<!-- APP WRAPPER -->
+<div id="app" class="app-wrapper hidden">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <i class="fas fa-graduation-cap"></i>
+        <span class="logo-text">EduSmart</span>
+      </div>
+      <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+
+    <div class="user-profile-mini">
+      <div class="avatar" id="sidebarAvatar">A</div>
+      <div class="user-info">
+        <span class="user-name" id="sidebarName">Administrateur</span>
+        <span class="user-role" id="sidebarRole">Super Admin</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav" id="sidebarNav">
+      <!-- Nav items injected by JS -->
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="doLogout()">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Déconnexion</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-wrapper">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="breadcrumb" id="breadcrumb">
+          <i class="fas fa-home"></i> &nbsp;Tableau de bord
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Rechercher..." onkeyup="globalSearch(this.value)" />
+        </div>
+        <button class="topbar-btn notif-btn" onclick="toggleNotifPanel()">
+          <i class="fas fa-bell"></i>
+          <span class="badge" id="notifBadge">5</span>
+        </button>
+        <button class="topbar-btn" onclick="toggleDarkMode()">
+          <i class="fas fa-moon" id="darkIcon"></i>
+        </button>
+        <div class="topbar-user" onclick="showSection('profil')">
+          <div class="avatar sm" id="topAvatar">A</div>
+          <span id="topName">Admin</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- NOTIFICATION PANEL -->
+    <div class="notif-panel hidden" id="notifPanel">
+      <div class="notif-header">
+        <h4>Notifications</h4>
+        <button onclick="clearNotifs()"><i class="fas fa-check-double"></i> Tout lire</button>
+      </div>
+      <div class="notif-list" id="notifList"></div>
+    </div>
+
+    <!-- PAGES CONTAINER -->
+    <main class="content" id="mainContent">
+      <!-- Sections injected here -->
+    </main>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay hidden" id="modalOverlay" onclick="closeModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/data.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/app.js"></script>
+<script src="js/sections.js"></script>
+<script src="js/charts.js"></script>
+</body>
+</html>
