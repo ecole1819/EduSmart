@@ -114,28 +114,36 @@ ALTER TABLE admin_staff ENABLE ROW LEVEL SECURITY;
 ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
 
 -- ============ RLS POLICIES ============
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Allow public insert for users" ON users;
+DROP POLICY IF EXISTS "Users can view own data" ON users;
+DROP POLICY IF EXISTS "Users can update own data" ON users;
+DROP POLICY IF EXISTS "Schools are publicly readable" ON schools;
+DROP POLICY IF EXISTS "Allow public insert for schools" ON schools;
+DROP POLICY IF EXISTS "Admins can do everything" ON users;
+
 -- Allow public insert for users (for signup)
-CREATE OR REPLACE POLICY "Allow public insert for users" ON users
+CREATE POLICY "Allow public insert for users" ON users
   FOR INSERT WITH CHECK (true);
 
 -- Users can read their own data
-CREATE OR REPLACE POLICY "Users can view own data" ON users
+CREATE POLICY "Users can view own data" ON users
   FOR SELECT USING (auth.uid()::text = id::text);
 
 -- Users can update their own data
-CREATE OR REPLACE POLICY "Users can update own data" ON users
+CREATE POLICY "Users can update own data" ON users
   FOR UPDATE USING (auth.uid()::text = id::text);
 
 -- Public read access for schools (for school selection)
-CREATE OR REPLACE POLICY "Schools are publicly readable" ON schools
+CREATE POLICY "Schools are publicly readable" ON schools
   FOR SELECT USING (true);
 
 -- Allow public insert for schools
-CREATE OR REPLACE POLICY "Allow public insert for schools" ON schools
+CREATE POLICY "Allow public insert for schools" ON schools
   FOR INSERT WITH CHECK (true);
 
 -- Admins can do everything
-CREATE OR REPLACE POLICY "Admins can do everything" ON users
+CREATE POLICY "Admins can do everything" ON users
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM users
