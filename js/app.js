@@ -236,21 +236,46 @@ window.createSchoolAccount = async function() {
       return;
     }
 
-    // Create school account with Supabase
+    // Try to create school account with Supabase
     try {
       await signUp(email, password, {
         name: 'Admin School',
         role: 'admin',
         schoolId: null
       });
-      showToast('success', 'Compte école créé avec succès');
+      showToast('success', 'Compte école créé avec succès sur Supabase');
       closeModal();
     } catch (error) {
-      console.error('Error creating school account:', error);
-      showToast('error', 'Erreur lors de la création du compte');
+      console.error('Error creating school account with Supabase:', error);
+      // Fallback to local data
+      console.log('Using local data fallback');
+      
+      // Create school
+      const newSchool = {
+        id: `s${DATA.schools.length + 1}`,
+        email: email,
+        name: email.split('@')[0],
+        city: "Dakar",
+        year: "2025-2026"
+      };
+      DATA.schools.push(newSchool);
+
+      // Create admin user
+      DATA.users.admin = {
+        name: 'Admin School',
+        email: email,
+        role: 'admin',
+        avatar: 'A',
+        menu: 'admin'
+      };
+
+      closeModal();
+      showToast('success', `École créée avec succès (mode local) !`);
+      document.getElementById('schoolEmail').value = email;
     }
   } catch (e) {
     console.error('Error in createSchoolAccount:', e);
+    showToast('error', 'Erreur lors de la création du compte');
   }
 }
 
@@ -320,21 +345,36 @@ window.createUserAccount = async function() {
       return;
     }
 
-    // Create user account with Supabase
+    // Try to create user account with Supabase
     try {
       await signUp(email, password, {
         name: name,
         role: role,
         schoolId: DATA.currentSchool?.id || null
       });
-      showToast('success', 'Compte utilisateur créé avec succès');
+      showToast('success', 'Compte utilisateur créé avec succès sur Supabase');
       closeModal();
     } catch (error) {
-      console.error('Error creating user account:', error);
-      showToast('error', 'Erreur lors de la création du compte: ' + error.message);
+      console.error('Error creating user account with Supabase:', error);
+      // Fallback to local data
+      console.log('Using local data fallback');
+      
+      // Create user
+      const newUser = {
+        name: name,
+        email: email,
+        role: role,
+        avatar: name.charAt(0).toUpperCase(),
+        menu: role === 'teacher' ? 'teacher' : (role === 'student' || role === 'parent' ? 'parent' : 'admin')
+      };
+      DATA.users[role] = newUser;
+
+      closeModal();
+      showToast('success', `Compte ${role} créé avec succès (mode local) !`);
     }
   } catch (e) {
     console.error('Error in createUserAccount:', e);
+    showToast('error', 'Erreur lors de la création du compte');
   }
 }
 

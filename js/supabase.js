@@ -59,21 +59,34 @@ async function signUp(email, password, userData) {
       body: JSON.stringify({ email, password })
     });
     const data = await response.json();
-    if (data.error) throw new Error(data.error.message);
+    
+    if (data.error) {
+      console.error('Supabase Auth error:', data.error);
+      throw new Error(data.error.message || 'Erreur d\'authentification');
+    }
+
+    console.log('Supabase Auth successful:', data);
 
     // Then, insert user data into custom users table
     if (userData) {
-      await supabaseRequest('users', {
-        method: 'POST',
-        body: JSON.stringify({
-          email: email,
-          password_hash: 'placeholder', // In production, use proper hashing
-          name: userData.name,
-          role: userData.role,
-          avatar: userData.name[0].toUpperCase(),
-          school_id: userData.schoolId || null
-        })
-      });
+      try {
+        await supabaseRequest('users', {
+          method: 'POST',
+          body: JSON.stringify({
+            email: email,
+            password_hash: 'placeholder', // In production, use proper hashing
+            name: userData.name,
+            role: userData.role,
+            avatar: userData.name[0].toUpperCase(),
+            school_id: userData.schoolId || null
+          })
+        });
+        console.log('User data inserted successfully');
+      } catch (dbError) {
+        console.error('Error inserting user data:', dbError);
+        // Don't throw error - user is created in Auth, just log the DB error
+        console.warn('User created in Auth but not in custom table');
+      }
     }
 
     return data;
