@@ -103,12 +103,12 @@ async function doLogin() {
   }
 
   try {
-    // Try Supabase authentication
+    // Supabase authentication
     const session = await signIn(email, password);
     if (session) {
       saveSession(session);
       showToast('success', 'Connexion réussie avec Supabase');
-      
+
       // Get user data from session
       const user = session.user;
       DATA.currentUser = {
@@ -142,37 +142,8 @@ async function doLogin() {
       showToast('success', `Bienvenue, ${DATA.currentUser.name} ! 👋`);
     }
   } catch (error) {
-    // Fallback to local data if Supabase fails
-    console.log('Supabase auth failed, using local data:', error);
-    const user = DATA.users[currentRole];
-    if (!user) {
-      showToast('error', 'Rôle non reconnu');
-      return;
-    }
-
-    DATA.currentUser = { ...user, role_key: currentRole, school: DATA.currentSchool };
-
-    // Update UI
-    document.getElementById('sidebarAvatar').textContent = user.avatar;
-    document.getElementById('topAvatar').textContent = user.avatar;
-    document.getElementById('sidebarName').textContent = user.name;
-    document.getElementById('sidebarRole').textContent = user.role;
-    document.getElementById('topName').textContent = user.name.split(' ')[1] || user.name;
-
-    // Build nav
-    buildNav(NAV_MENUS[user.menu]);
-
-    // Show app
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('app').classList.remove('hidden');
-
-    // Load initial section
-    const firstSection = currentRole === 'parent' || currentRole === 'student' ? 'parent_dashboard' : 'dashboard';
-    showSection(firstSection);
-
-    // Load notifications
-    renderNotifications();
-    showToast('success', `Bienvenue, ${user.name} ! 👋`);
+    console.error('Supabase auth failed:', error);
+    showToast('error', 'Erreur de connexion: ' + error.message);
   }
 }
 
@@ -236,46 +207,17 @@ window.createSchoolAccount = async function() {
       return;
     }
 
-    // Try to create school account with Supabase
-    try {
-      await signUp(email, password, {
-        name: 'Admin School',
-        role: 'admin',
-        schoolId: null
-      });
-      showToast('success', 'Compte école créé avec succès sur Supabase');
-      closeModal();
-    } catch (error) {
-      console.error('Error creating school account with Supabase:', error);
-      // Fallback to local data
-      console.log('Using local data fallback');
-      
-      // Create school
-      const newSchool = {
-        id: `s${DATA.schools.length + 1}`,
-        email: email,
-        name: email.split('@')[0],
-        city: "Dakar",
-        year: "2025-2026"
-      };
-      DATA.schools.push(newSchool);
-
-      // Create admin user
-      DATA.users.admin = {
-        name: 'Admin School',
-        email: email,
-        role: 'admin',
-        avatar: 'A',
-        menu: 'admin'
-      };
-
-      closeModal();
-      showToast('success', `École créée avec succès (mode local) !`);
-      document.getElementById('schoolEmail').value = email;
-    }
-  } catch (e) {
-    console.error('Error in createSchoolAccount:', e);
-    showToast('error', 'Erreur lors de la création du compte');
+    // Create school account with Supabase
+    await signUp(email, password, {
+      name: 'Admin School',
+      role: 'admin',
+      schoolId: null
+    });
+    showToast('success', 'Compte école créé avec succès sur Supabase');
+    closeModal();
+  } catch (error) {
+    console.error('Error creating school account with Supabase:', error);
+    showToast('error', 'Erreur lors de la création du compte: ' + error.message);
   }
 }
 
@@ -345,36 +287,17 @@ window.createUserAccount = async function() {
       return;
     }
 
-    // Try to create user account with Supabase
-    try {
-      await signUp(email, password, {
-        name: name,
-        role: role,
-        schoolId: DATA.currentSchool?.id || null
-      });
-      showToast('success', 'Compte utilisateur créé avec succès sur Supabase');
-      closeModal();
-    } catch (error) {
-      console.error('Error creating user account with Supabase:', error);
-      // Fallback to local data
-      console.log('Using local data fallback');
-      
-      // Create user
-      const newUser = {
-        name: name,
-        email: email,
-        role: role,
-        avatar: name.charAt(0).toUpperCase(),
-        menu: role === 'teacher' ? 'teacher' : (role === 'student' || role === 'parent' ? 'parent' : 'admin')
-      };
-      DATA.users[role] = newUser;
-
-      closeModal();
-      showToast('success', `Compte ${role} créé avec succès (mode local) !`);
-    }
-  } catch (e) {
-    console.error('Error in createUserAccount:', e);
-    showToast('error', 'Erreur lors de la création du compte');
+    // Create user account with Supabase
+    await signUp(email, password, {
+      name: name,
+      role: role,
+      schoolId: DATA.currentSchool?.id || null
+    });
+    showToast('success', 'Compte utilisateur créé avec succès sur Supabase');
+    closeModal();
+  } catch (error) {
+    console.error('Error creating user account with Supabase:', error);
+    showToast('error', 'Erreur lors de la création du compte: ' + error.message);
   }
 }
 
