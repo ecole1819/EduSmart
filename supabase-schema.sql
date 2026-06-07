@@ -114,6 +114,10 @@ ALTER TABLE admin_staff ENABLE ROW LEVEL SECURITY;
 ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
 
 -- ============ RLS POLICIES ============
+-- Allow public insert for users (for signup)
+CREATE POLICY "Allow public insert for users" ON users
+  FOR INSERT WITH CHECK (true);
+
 -- Users can read their own data
 CREATE POLICY "Users can view own data" ON users
   FOR SELECT USING (auth.uid()::text = id::text);
@@ -126,11 +130,15 @@ CREATE POLICY "Users can update own data" ON users
 CREATE POLICY "Schools are publicly readable" ON schools
   FOR SELECT USING (true);
 
+-- Allow public insert for schools
+CREATE POLICY "Allow public insert for schools" ON schools
+  FOR INSERT WITH CHECK (true);
+
 -- Admins can do everything
 CREATE POLICY "Admins can do everything" ON users
   FOR ALL USING (
     EXISTS (
-      SELECT 1 FROM users 
+      SELECT 1 FROM users
       WHERE id::text = auth.uid()::text AND role = 'admin'
     )
   );

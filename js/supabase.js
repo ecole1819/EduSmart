@@ -59,10 +59,14 @@ async function signUp(email, password, userData) {
       body: JSON.stringify({ email, password })
     });
     const data = await response.json();
-    
-    if (data.error) {
-      console.error('Supabase Auth error:', data.error);
-      throw new Error(data.error.message || 'Erreur d\'authentification');
+
+    // Check for errors including 422 (user already exists)
+    if (data.error || response.status !== 201) {
+      console.error('Supabase Auth error:', data);
+      if (data.error_code === 'user_already_exists') {
+        throw new Error('Cet utilisateur existe déjà');
+      }
+      throw new Error(data.error?.message || 'Erreur d\'authentification');
     }
 
     console.log('Supabase Auth successful:', data);
@@ -70,7 +74,7 @@ async function signUp(email, password, userData) {
     // Then, insert user data into custom users table
     if (userData) {
       try {
-        await supabaseRequest('users', {
+        const userInsertResult = await supabaseRequest('users', {
           method: 'POST',
           body: JSON.stringify({
             email: email,
@@ -81,7 +85,7 @@ async function signUp(email, password, userData) {
             school_id: userData.schoolId || null
           })
         });
-        console.log('User data inserted successfully');
+        console.log('User data inserted successfully:', userInsertResult);
       } catch (dbError) {
         console.error('Error inserting user data:', dbError);
         // Don't throw error - user is created in Auth, just log the DB error
