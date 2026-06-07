@@ -115,27 +115,27 @@ ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
 
 -- ============ RLS POLICIES ============
 -- Allow public insert for users (for signup)
-CREATE POLICY "Allow public insert for users" ON users
+CREATE OR REPLACE POLICY "Allow public insert for users" ON users
   FOR INSERT WITH CHECK (true);
 
 -- Users can read their own data
-CREATE POLICY "Users can view own data" ON users
+CREATE OR REPLACE POLICY "Users can view own data" ON users
   FOR SELECT USING (auth.uid()::text = id::text);
 
 -- Users can update their own data
-CREATE POLICY "Users can update own data" ON users
+CREATE OR REPLACE POLICY "Users can update own data" ON users
   FOR UPDATE USING (auth.uid()::text = id::text);
 
 -- Public read access for schools (for school selection)
-CREATE POLICY "Schools are publicly readable" ON schools
+CREATE OR REPLACE POLICY "Schools are publicly readable" ON schools
   FOR SELECT USING (true);
 
 -- Allow public insert for schools
-CREATE POLICY "Allow public insert for schools" ON schools
+CREATE OR REPLACE POLICY "Allow public insert for schools" ON schools
   FOR INSERT WITH CHECK (true);
 
 -- Admins can do everything
-CREATE POLICY "Admins can do everything" ON users
+CREATE OR REPLACE POLICY "Admins can do everything" ON users
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM users
