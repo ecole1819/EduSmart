@@ -47,8 +47,9 @@ async function signIn(email, password) {
   }
 }
 
-async function signUp(email, password) {
+async function signUp(email, password, userData) {
   try {
+    // First, sign up with Supabase Auth
     const response = await fetch(`${SUPABASE_CONFIG.url}/auth/v1/signup`, {
       method: 'POST',
       headers: {
@@ -59,6 +60,22 @@ async function signUp(email, password) {
     });
     const data = await response.json();
     if (data.error) throw new Error(data.error.message);
+
+    // Then, insert user data into custom users table
+    if (userData) {
+      await supabaseRequest('users', {
+        method: 'POST',
+        body: JSON.stringify({
+          email: email,
+          password_hash: 'placeholder', // In production, use proper hashing
+          name: userData.name,
+          role: userData.role,
+          avatar: userData.name[0].toUpperCase(),
+          school_id: userData.schoolId || null
+        })
+      });
+    }
+
     return data;
   } catch (error) {
     console.error('Sign up error:', error);
@@ -67,6 +84,22 @@ async function signUp(email, password) {
 }
 
 async function signOut() {
+  try {
+    // Sign out from Supabase
+    const session = getSession();
+    if (session && session.access_token) {
+      await fetch(`${SUPABASE_CONFIG.url}/auth/v1/logout`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_CONFIG.anonKey,
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Sign out error:', error);
+  }
+
   // Remove session from localStorage
   localStorage.removeItem('supabase_session');
   showToast('success', 'Déconnexion réussie');

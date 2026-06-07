@@ -95,7 +95,7 @@ function selectRole(role) {
 
 async function doLogin() {
   const email = document.getElementById('loginUser').value;
-  const password = document.getElementById('loginPassword').value;
+  const password = document.getElementById('loginPass').value;
 
   if (!email || !password) {
     showToast('error', 'Veuillez remplir tous les champs');
@@ -219,7 +219,7 @@ window.showCreateSchoolModal = function() {
   }
 }
 
-window.createSchoolAccount = function() {
+window.createSchoolAccount = async function() {
   console.log('createSchoolAccount called');
   try {
     const email = document.getElementById('newSchoolEmail').value;
@@ -236,22 +236,21 @@ window.createSchoolAccount = function() {
       return;
     }
 
-    // Create school
-    const newSchool = {
-      id: `s${DATA.schools.length + 1}`,
-      email: email,
-      name: email.split('@')[0],
-      city: "Dakar",
-      year: "2025-2026"
-    };
-    DATA.schools.push(newSchool);
-
-    closeModal();
-    showToast('success', `École créée avec succès !`);
-    document.getElementById('schoolEmail').value = email;
+    // Create school account with Supabase
+    try {
+      await signUp(email, password, {
+        name: 'Admin School',
+        role: 'admin',
+        schoolId: null
+      });
+      showToast('success', 'Compte école créé avec succès');
+      closeModal();
+    } catch (error) {
+      console.error('Error creating school account:', error);
+      showToast('error', 'Erreur lors de la création du compte');
+    }
   } catch (e) {
     console.error('Error in createSchoolAccount:', e);
-    showToast('error', 'Erreur lors de la création de l\'école');
   }
 }
 
@@ -263,26 +262,31 @@ window.showCreateUserModal = function() {
         <h3><i class="fas fa-user-plus"></i> Créer un compte utilisateur</h3>
       </div>
       <div class="modal-body">
-        <div class="input-group">
-          <i class="fas fa-user-tag"></i>
-          <select id="newUserRole" class="form-select">
-            <option value="teacher">Professeur</option>
-            <option value="student">Élève</option>
-            <option value="parent">Parent</option>
-            <option value="surveillant">Surveillant</option>
-          </select>
-        </div>
-        <div class="input-group">
-          <i class="fas fa-user"></i>
+        <div class="form-group">
+          <label>Nom complet</label>
           <input type="text" id="newUserName" placeholder="Nom complet" />
         </div>
-        <div class="input-group">
-          <i class="fas fa-envelope"></i>
+        <div class="form-group">
+          <label>Email</label>
           <input type="email" id="newUserEmail" placeholder="Email" />
         </div>
-        <div class="input-group">
-          <i class="fas fa-lock"></i>
+        <div class="form-group">
+          <label>Mot de passe</label>
           <input type="password" id="newUserPassword" placeholder="Mot de passe" />
+        </div>
+        <div class="form-group">
+          <label>Confirmer le mot de passe</label>
+          <input type="password" id="newUserPasswordConfirm" placeholder="Confirmer le mot de passe" />
+        </div>
+        <div class="form-group">
+          <label>Rôle</label>
+          <select id="newUserRole">
+            <option value="admin">Administrateur</option>
+            <option value="surveillant">Surveillant</option>
+            <option value="teacher">Enseignant</option>
+            <option value="student">Élève</option>
+            <option value="parent">Parent</option>
+          </select>
         </div>
       </div>
       <div class="modal-footer">
@@ -297,33 +301,40 @@ window.showCreateUserModal = function() {
   }
 }
 
-window.createUserAccount = function() {
+window.createUserAccount = async function() {
   console.log('createUserAccount called');
   try {
-    const role = document.getElementById('newUserRole').value;
     const name = document.getElementById('newUserName').value;
     const email = document.getElementById('newUserEmail').value;
     const password = document.getElementById('newUserPassword').value;
+    const passwordConfirm = document.getElementById('newUserPasswordConfirm').value;
+    const role = document.getElementById('newUserRole').value;
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !passwordConfirm) {
       showToast('error', 'Veuillez remplir tous les champs');
       return;
     }
 
-    // Create user
-    const newUser = {
-      name: name,
-      role: role,
-      avatar: name.charAt(0).toUpperCase(),
-      menu: role === 'teacher' ? 'teacher' : (role === 'student' || role === 'parent' ? 'parent' : 'admin')
-    };
-    DATA.users[role] = newUser;
+    if (password !== passwordConfirm) {
+      showToast('error', 'Les mots de passe ne correspondent pas');
+      return;
+    }
 
-    closeModal();
-    showToast('success', `Compte ${role} créé avec succès !`);
+    // Create user account with Supabase
+    try {
+      await signUp(email, password, {
+        name: name,
+        role: role,
+        schoolId: DATA.currentSchool?.id || null
+      });
+      showToast('success', 'Compte utilisateur créé avec succès');
+      closeModal();
+    } catch (error) {
+      console.error('Error creating user account:', error);
+      showToast('error', 'Erreur lors de la création du compte: ' + error.message);
+    }
   } catch (e) {
     console.error('Error in createUserAccount:', e);
-    showToast('error', 'Erreur lors de la création du compte');
   }
 }
 
